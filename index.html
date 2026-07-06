@@ -1,246 +1,333 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Status LK Unit Kerja 2024</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Kinerja Pegawai - Gemini AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  
   <style>
-    * { box-sizing: border-box; }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #e0f2fe, #ecfeff);
-      margin: 0;
-      min-height: 100vh;
-    }
-
-    .container {
-      height: 100vh;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    h1 {
-      margin: 0 0 6px 0;
-      text-align: center;
-      color: #0f172a;
-      font-size: clamp(16px, 2.5vw, 22px);
-    }
-
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .filter-box {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      font-size: 13px;
-    }
-
-    .filter-box select {
-      padding: 5px 8px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-    }
-
-    .table-wrapper {
-      flex: 1;
-      overflow: auto;
-      border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      background: white;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: clamp(11px, 1.8vw, 14px);
-    }
-
-    thead {
-      position: sticky;
-      top: 0;
-      background: linear-gradient(90deg, #22c55e, #84cc16);
-      color: white;
-      z-index: 2;
-    }
-
-    th, td {
-      padding: clamp(6px, 1vw, 10px);
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-    }
-
-    tbody tr:hover {
-      background: #f0fdf4;
-    }
-
-    select.status-select {
-      padding: 4px 8px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: inherit;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .status {
-      text-align: center;
-      font-weight: 600;
-      border-radius: 999px;
-      padding: 4px 8px;
-      color: white;
-      display: inline-block;
-      min-width: 80px;
-    }
-
-    .status-belum {
-      background: linear-gradient(90deg, #ef4444, #f97316);
-    }
-
-    .status-sudah {
-      background: linear-gradient(90deg, #22c55e, #16a34a);
-    }
-
-    .footer {
-      margin-top: 4px;
-      text-align: right;
-      font-size: 10px;
-      color: #64748b;
-    }
-
-    @media (max-width: 600px) {
-      .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
+    body { font-family: 'Inter', sans-serif; background-color: #f4f6f9; color: #333; }
+    .navbar-custom { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; transition: transform 0.2s; }
+    .card-metric { background: white; border-left: 5px solid #2a5298; }
+    .badge-grade { font-size: 1.2rem; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; }
+    .grade-A { background-color: #d1e7dd; color: #0f5132; }
+    .grade-B { background-color: #cff4fc; color: #055160; }
+    .grade-C { background-color: #fff3cd; color: #664d03; }
+    .grade-D { background-color: #f8d7da; color: #842029; }
+    .grade-E { background-color: #e2e3e5; color: #41464b; }
+    .sticky-header th { position: sticky; top: 0; background-color: #2a5298 !important; color: white; z-index: 10; }
+    .table-container { max-height: 400px; overflow-y: auto; }
+    .loading-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.8); z-index:9999; align-items:center; justify-content:center; flex-direction:column; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Monitoring LK Tahun 2024</h1>
 
-    <div class="top-bar">
-      <div class="filter-box">
-        <strong>Filter Status:</strong>
-        <select id="filterSelect" onchange="applyFilter()">
-          <option value="all">Semua</option>
-          <option value="belum">Belum Input</option>
-          <option value="sudah">Sudah Input</option>
-        </select>
-      </div>
-
-      <div style="font-size:12px;color:#475569">
-        Auto Save Aktif
-      </div>
-    </div>
-
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:50px">No</th>
-            <th>Nama Unit Kerja</th>
-            <th style="width:160px">LK 2024</th>
-            <th style="width:120px">Status</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-
-    <div class="footer">Monitoring LK • Filter + Auto Save</div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+    <h5 class="mt-3 fw-bold text-dark" id="loadingText">Sedang Memproses Data & Analisis AI...</h5>
   </div>
 
+  <nav class="navbar navbar-custom py-3 shadow-sm">
+    <div class="container-fluid px-4">
+      <span class="navbar-brand mb-0 h1 fw-bold text-white"><i class="bi bi-cpu-fill me-2"></i> Performance AI Evaluator</span>
+      <span class="badge bg-light text-primary fw-semibold">Hosted on GitHub Pages</span>
+    </div>
+  </nav>
+
+  <div class="container-fluid px-4 mt-4">
+    
+    <div class="row">
+      <div class="col-lg-5">
+        <div class="card p-4">
+          <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-file-earmark-excel-fill me-2"></i>Import Log Aktivitas</h5>
+          <form id="uploadForm">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">1. Pilih Pegawai</label>
+              <select class="form-select" id="selectPegawai" required>
+                <option value="">-- Pilih Nama Pegawai --</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">2. Pilih File Excel Aktivitas</label>
+              <input class="form-control" type="file" id="fileExcel" accept=".xlsx, .xls" required>
+              <div class="form-text text-muted">Format kolom harus sesuai template log aktivitas harian.</div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Unggah & Evaluasi Bersama AI</button>
+          </form>
+        </div>
+      </div>
+      
+      <div class="col-lg-7">
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <div class="card card-metric p-4 h-100 d-flex justify-content-center">
+              <span class="text-muted fw-semibold">Total Pegawai Terdaftar</span>
+              <h2 class="fw-bold text-dark display-5 mt-2" id="valTotalPegawai">0</h2>
+            </div>
+          </div>
+          <div class="col-sm-6 mb-3">
+            <div class="card card-metric p-4 h-100 d-flex justify-content-center" style="border-left-color: #198754;">
+              <span class="text-muted fw-semibold">Total Sesi Penilaian</span>
+              <h2 class="fw-bold text-success display-5 mt-2" id="valTotalSesi">0</h2>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card p-3">
+          <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-trophy-fill me-2 text-warning"></i>Peringkat Kinerja Pegawai (Nilai Rata-rata Terkini)</h6>
+          <div class="table-responsive" style="max-height: 140px;">
+            <table class="table table-sm align-middle">
+              <thead><tr><th>Peringkat</th><th>Nama Pegawai</th><th class="text-center">Nilai Akhir</th><th class="text-center">Grade</th></tr></thead>
+              <tbody id="rankingTableBody">
+                <tr><td colspan="4" class="text-center text-muted">Belum ada data penilaian</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card p-4">
+          <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-line-fill me-2 text-info"></i>Grafik Performa Kompetensi Pegawai</h5>
+          <div style="height: 300px; position: relative;">
+            <canvas id="chartKompetensi"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <h5 class="fw-bold text-dark mb-3"><i class="bi bi-database-fill-check me-2 text-success"></i>Riwayat Evaluasi Kinerja Otomatis</h5>
+      <div class="table-container table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="sticky-header">
+            <tr>
+              <th>Tanggal</th>
+              <th>Pegawai</th>
+              <th>IMP</th>
+              <th>DM</th>
+              <th>PA</th>
+              <th>REG</th>
+              <th>EXC</th>
+              <th>UIX</th>
+              <th class="text-center">Rata²</th>
+              <th class="text-center">Grade</th>
+              <th>Analisis & Rekomendasi Gemini AI</th>
+            </tr>
+          </thead>
+          <tbody id="detailTableBody">
+            <tr><td colspan="11" class="text-center text-muted">Memuat database riwayat evaluasi...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
   <script>
-    const units = [
-      "Puskesmas Kampung Jabi",
-      "UPT Puskesmas Baloi Permai",
-      "UPT Puskesmas Batu Aji",
-      "UPT Puskesmas Belakang Padang",
-      "UPT Puskesmas Botania",
-      "UPT Puskesmas Bulang",
-      "UPT Puskesmas Galang",
-      "UPT Puskesmas Kabil",
-      "UPT Puskesmas Lubuk Baja",
-      "UPT Puskesmas Mentarau",
-      "UPT Puskesmas Rempang Cate",
-      "UPT Puskesmas Sambau",
-      "UPT Puskesmas Sei Langkai",
-      "UPT Puskesmas Sei Lekop",
-      "UPT Puskesmas Sei Panas",
-      "UPT Puskesmas Sei Pancur",
-      "UPT Puskesmas Sekupang",
-      "UPT Puskesmas Tanjung Buntung",
-      "UPT Puskesmas Tanjung Sengkuang",
-      "UPT Puskesmas Tanjung Uncang",
-      "UPT Puskesmas Tiban Baru"
-    ];
+    // ==========================================
+    // CONFIG: PASTE URL WEB APP APPS SCRIPT ANDA DI SINI
+    // ==========================================
+    const API_URL = "https://script.google.com/macros/s/AKfycbzECoOZ8gZ9bBUuQVUXFNiCynXUr0NFotDvT0Pjp-O2c_X9CNyA8haMIjPVLZoeRSRn/exec"; 
 
-    const tbody = document.getElementById("tableBody");
-    const savedData = JSON.parse(localStorage.getItem("lk_status_2024") || "{}");
+    let chartObj = null;
 
-    function renderTable() {
-      tbody.innerHTML = "";
+    document.addEventListener("DOMContentLoaded", function() {
+      if(API_URL.includes("URL_APLIKASI_WEB_GAS_ANDA")) {
+        alert("Peringatan: Isi variabel API_URL di dalam script terlebih dahulu dengan link Web App Google Apps Script Anda!");
+        return;
+      }
+      loadDropdownPegawai();
+      refreshDashboard();
+      
+      document.getElementById('uploadForm').addEventListener('submit', prosesUploadExcel);
+    });
 
-      units.forEach((unit, index) => {
-        const savedValue = savedData[index] || "belum";
-
-        const row = document.createElement("tr");
-        row.dataset.status = savedValue;
-
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${unit}</td>
-          <td>
-            <select class="status-select" onchange="updateStatus(this, ${index})">
-              <option value="belum" ${savedValue === 'belum' ? 'selected' : ''}>Belum Input</option>
-              <option value="sudah" ${savedValue === 'sudah' ? 'selected' : ''}>Sudah Input</option>
-            </select>
-          </td>
-          <td style="text-align:center">
-            <span id="status-${index}" class="status ${savedValue === 'sudah' ? 'status-sudah' : 'status-belum'}">
-              ${savedValue === 'sudah' ? '✔ Sudah' : 'Belum'}
-            </span>
-          </td>
-        `;
-
-        tbody.appendChild(row);
-      });
-
-      applyFilter();
+    function showLoading(msg) {
+      document.getElementById('loadingText').innerText = msg;
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+    
+    function hideLoading() {
+      document.getElementById('loadingOverlay').style.display = 'none';
     }
 
-    function updateStatus(select, index) {
-      const value = select.value;
-      savedData[index] = value;
-      localStorage.setItem("lk_status_2024", JSON.stringify(savedData));
-
-      renderTable();
+    // Mengambil daftar pegawai via API POST Fetch
+    function loadDropdownPegawai() {
+      fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "getDaftarPegawai" })
+      })
+      .then(res => res.json())
+      .then(list => {
+        const select = document.getElementById('selectPegawai');
+        list.forEach(nama => {
+          let opt = document.createElement('option');
+          opt.value = nama;
+          opt.innerText = nama;
+          select.appendChild(opt);
+        });
+      })
+      .catch(err => console.error("Gagal memuat daftar pegawai:", err));
     }
 
-    function applyFilter() {
-      const filter = document.getElementById("filterSelect").value;
-      const rows = tbody.querySelectorAll("tr");
-
-      rows.forEach(row => {
-        if (filter === "all") {
-          row.style.display = "";
+    // Refresh data statistik dan dashboard tabel
+    function refreshDashboard() {
+      fetch(API_URL, {
+        method: "POST",
+        mode: "cors",
+        body: JSON.stringify({ action: "getDashboardData" })
+      })
+      .then(res => res.json())
+      .then(res => {
+        document.getElementById('valTotalSesi').innerText = res.totalEvaluasi;
+        document.getElementById('valTotalPegawai').innerText = res.jumlahPegawai;
+        
+        // Render Papan Peringkat
+        const rankBody = document.getElementById('rankingTableBody');
+        rankBody.innerHTML = "";
+        if(res.ranking.length === 0) {
+          rankBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Belum ada data</td></tr>`;
         } else {
-          row.style.display = row.dataset.status === filter ? "" : "none";
+          res.ranking.forEach((p, idx) => {
+            rankBody.innerHTML += `
+              <tr>
+                <td><strong>#${idx + 1}</strong></td>
+                <td>${p.nama}</td>
+                <td class="text-center fw-bold text-primary">${p.nilaiAkhir}</td>
+                <td class="text-center"><span class="badge bg-secondary">${p.grade}</span></td>
+              </tr>`;
+          });
+        }
+
+        // Render Tabel Detail Penilaian
+        const detailBody = document.getElementById('detailTableBody');
+        detailBody.innerHTML = "";
+        if(res.detail.length === 0) {
+          detailBody.innerHTML = `<tr><td colspan="11" class="text-center text-muted">Database kosong. Silakan unggah file excel log kerja.</td></tr>`;
+        } else {
+          res.detail.forEach(r => {
+            detailBody.innerHTML += `
+              <tr>
+                <td style="font-size:0.85rem;" class="text-nowrap">${r.tgl}</td>
+                <td class="fw-semibold">${r.nama}</td>
+                <td>${r.imp}</td>
+                <td>${r.dm}</td>
+                <td>${r.pa}</td>
+                <td>${r.ur}</td>
+                <td>${r.ex}</td>
+                <td>${r.ui}</td>
+                <td class="text-center fw-bold text-dark">${r.avg}</td>
+                <td class="text-center"><span class="badge-grade grade-${r.grade}">${r.grade}</span></td>
+                <td>
+                  <div class="mb-1"><strong>Analisis:</strong> <span style="font-size:0.9rem;">${r.interpretasi}</span></div>
+                  <div><strong class="text-success">Rekomendasi:</strong> <span style="font-size:0.9rem;" class="fst-italic">${r.rekomendasi}</span></div>
+                </td>
+              </tr>`;
+          });
+        }
+
+        // Render Chart
+        renderChart(res.ranking);
+      })
+      .catch(err => console.error("Gagal memuat dashboard data:", err));
+    }
+
+    // Membaca file Excel secara lokal di client, lalu kirim struktur JSON via Fetch POST
+    function prosesUploadExcel(e) {
+      e.preventDefault();
+      const namaPegawai = document.getElementById('selectPegawai').value;
+      const fileInput = document.getElementById('fileExcel');
+      
+      if (!namaPegawai || fileInput.files.length === 0) return;
+      
+      showLoading("Membaca dan memetakan struktur file Excel...");
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        const rowsJson = XLSX.utils.sheet_to_json(worksheet);
+        
+        if(rowsJson.length === 0) {
+          hideLoading();
+          alert("File excel kosong atau format tidak dikenali!");
+          return;
+        }
+
+        showLoading("Mengirim log aktivitas ke Gemini AI untuk dianalisis...");
+        
+        fetch(API_URL, {
+          method: "POST",
+          mode: "cors",
+          body: JSON.stringify({
+            action: "simpanDanNilaiData",
+            namaPegawai: namaPegawai,
+            rowsData: rowsJson
+          })
+        })
+        .then(res => res.json())
+        .then(output => {
+          hideLoading();
+          alert(output.message);
+          document.getElementById('uploadForm').reset();
+          refreshDashboard();
+        })
+        .catch(err => {
+          hideLoading();
+          alert("Terjadi Kesalahan Koneksi / CORS: " + err.message);
+        });
+      };
+      
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderChart(rankingData) {
+      const ctx = document.getElementById('chartKompetensi').getContext('2d');
+      const labels = rankingData.map(item => item.nama);
+      const dataSkor = rankingData.map(item => item.nilaiAkhir);
+      
+      if (chartObj) {
+        chartObj.destroy();
+      }
+      
+      chartObj = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Nilai Rata-rata Kompetensi Pegawai',
+            data: dataSkor,
+            backgroundColor: 'rgba(42, 82, 152, 0.75)',
+            borderColor: 'rgba(42, 82, 152, 1)',
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          }
         }
       });
     }
-
-    renderTable();
   </script>
 </body>
 </html>
