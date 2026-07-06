@@ -135,21 +135,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <script>
-    // ==========================================
-    // CONFIG: PASTE URL WEB APP APPS SCRIPT ANDA DI SINI
-    // ==========================================
     const API_URL = "https://script.google.com/macros/s/AKfycbx5YcaykFdUfV9oRn814SLQNbONvPbZ6B6JFDEQ9EPbptzK0z4b9Sg9nRxWlbnynAdk/exec"; 
 
     let chartObj = null;
 
     document.addEventListener("DOMContentLoaded", function() {
-      if(API_URL.includes("URL_APLIKASI_WEB_GAS_ANDA")) {
-        alert("Peringatan: Isi variabel API_URL di dalam script terlebih dahulu dengan link Web App Google Apps Script Anda!");
-        return;
-      }
       loadDropdownPegawai();
       refreshDashboard();
-      
       document.getElementById('uploadForm').addEventListener('submit', prosesUploadExcel);
     });
 
@@ -162,39 +154,41 @@
       document.getElementById('loadingOverlay').style.display = 'none';
     }
 
-    // Mengambil daftar pegawai via API POST Fetch
+    // Perbaikan: Menangani objek respons { status: "success", data: [...] }
     function loadDropdownPegawai() {
       fetch(API_URL, {
         method: "POST",
-        mode: "cors",
         body: JSON.stringify({ action: "getDaftarPegawai" })
       })
       .then(res => res.json())
-      .then(list => {
-        const select = document.getElementById('selectPegawai');
-        list.forEach(nama => {
-          let opt = document.createElement('option');
-          opt.value = nama;
-          opt.innerText = nama;
-          select.appendChild(opt);
-        });
+      .then(response => {
+        if(response.status === "success") {
+          const select = document.getElementById('selectPegawai');
+          response.data.forEach(nama => {
+            let opt = document.createElement('option');
+            opt.value = nama;
+            opt.innerText = nama;
+            select.appendChild(opt);
+          });
+        }
       })
       .catch(err => console.error("Gagal memuat daftar pegawai:", err));
     }
 
-    // Refresh data statistik dan dashboard tabel
+    // Perbaikan: Menangani objek respons { status: "success", data: [...] }
     function refreshDashboard() {
       fetch(API_URL, {
         method: "POST",
-        mode: "cors",
         body: JSON.stringify({ action: "getDashboardData" })
       })
       .then(res => res.json())
-      .then(res => {
+      .then(response => {
+        if(response.status !== "success") return;
+        const res = response.data;
+
         document.getElementById('valTotalSesi').innerText = res.totalEvaluasi;
         document.getElementById('valTotalPegawai').innerText = res.jumlahPegawai;
         
-        // Render Papan Peringkat
         const rankBody = document.getElementById('rankingTableBody');
         rankBody.innerHTML = "";
         if(res.ranking.length === 0) {
@@ -211,7 +205,6 @@
           });
         }
 
-        // Render Tabel Detail Penilaian
         const detailBody = document.getElementById('detailTableBody');
         detailBody.innerHTML = "";
         if(res.detail.length === 0) {
@@ -238,13 +231,11 @@
           });
         }
 
-        // Render Chart
         renderChart(res.ranking);
       })
       .catch(err => console.error("Gagal memuat dashboard data:", err));
     }
 
-    // Membaca file Excel secara lokal di client, lalu kirim struktur JSON via Fetch POST
     function prosesUploadExcel(e) {
       e.preventDefault();
       const namaPegawai = document.getElementById('selectPegawai').value;
@@ -274,7 +265,6 @@
         
         fetch(API_URL, {
           method: "POST",
-          mode: "cors",
           body: JSON.stringify({
             action: "simpanDanNilaiData",
             namaPegawai: namaPegawai,
@@ -302,9 +292,7 @@
       const labels = rankingData.map(item => item.nama);
       const dataSkor = rankingData.map(item => item.nilaiAkhir);
       
-      if (chartObj) {
-        chartObj.destroy();
-      }
+      if (chartObj) chartObj.destroy();
       
       chartObj = new Chart(ctx, {
         type: 'bar',
@@ -322,9 +310,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: {
-            y: { beginAtZero: true, max: 100 }
-          }
+          scales: { y: { beginAtZero: true, max: 100 } }
         }
       });
     }
