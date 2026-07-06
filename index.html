@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Kinerja Pegawai</title>
+  <title>Dashboard Kinerja Pegawai Riqcom Services</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -11,7 +11,7 @@
   <style>
     body { font-family: 'Inter', sans-serif; background-color: #f4f6f9; color: #333; }
     .navbar-custom { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; }
-    .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; transition: transform 0.2s; }
     .card-metric { background: white; border-left: 5px solid #2a5298; }
     .badge-grade { font-size: 1.2rem; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; }
     .grade-A { background-color: #d1e7dd; color: #0f5132; }
@@ -28,13 +28,13 @@
 
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-    <h5 class="mt-3 fw-bold text-dark" id="loadingText">Sedang Memproses Data & Analisis ...</h5>
+    <h5 class="mt-3 fw-bold text-dark" id="loadingText">Sedang Memproses Data & Analisis AI...</h5>
   </div>
 
   <nav class="navbar navbar-custom py-3 shadow-sm">
     <div class="container-fluid px-4">
-      <span class="navbar-brand mb-0 h1 fw-bold text-white"><i class="bi bi-cpu-fill me-2"></i> Performance Evaluator (GitHub Deployment)</span>
-      <span class="badge bg-light text-primary fw-semibold">Cloud Integration API</span>
+      <span class="navbar-brand mb-0 h1 fw-bold text-white"><i class="bi bi-cpu-fill me-2"></i> Performance Evaluator</span>
+      <span class="badge bg-light text-primary fw-semibold">Hosted on Ahmad IMD</span>
     </div>
   </nav>
 
@@ -47,15 +47,16 @@
           <form id="uploadForm">
             <div class="mb-3">
               <label class="form-label fw-semibold">1. Pilih Pegawai</label>
-              <select class="form-select" id="selectPegaw" required>
+              <select class="form-select" id="selectPegawai" required>
                 <option value="">-- Pilih Nama Pegawai --</option>
               </select>
             </div>
             <div class="mb-3">
               <label class="form-label fw-semibold">2. Pilih File Excel Aktivitas</label>
               <input class="form-control" type="file" id="fileExcel" accept=".xlsx, .xls" required>
+              <div class="form-text text-muted">Format kolom harus sesuai template log aktivitas harian.</div>
             </div>
-            <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Unggah & Evaluasi Bersama </button>
+            <button type="submit" class="btn btn-primary w-100 fw-bold"><i class="bi bi-cloud-arrow-up-fill me-2"></i>Unggah & Evaluasi Bersama AI</button>
           </form>
         </div>
       </div>
@@ -77,7 +78,7 @@
         </div>
         
         <div class="card p-3">
-          <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-trophy-fill me-2 text-warning"></i>Peringkat Kinerja Pegawai</h6>
+          <h6 class="fw-bold text-secondary mb-2"><i class="bi bi-trophy-fill me-2 text-warning"></i>Peringkat Kinerja Pegawai (Nilai Rata-rata Terkini)</h6>
           <div class="table-responsive" style="max-height: 140px;">
             <table class="table table-sm align-middle">
               <thead><tr><th>Peringkat</th><th>Nama Pegawai</th><th class="text-center">Nilai Akhir</th><th class="text-center">Grade</th></tr></thead>
@@ -117,11 +118,11 @@
               <th>UIX</th>
               <th class="text-center">Rata²</th>
               <th class="text-center">Grade</th>
-              <th>Analisis & Rekomendasi AI</th>
+              <th>Analisis & Rekomendasi Gemini AI</th>
             </tr>
           </thead>
           <tbody id="detailTableBody">
-            <tr><td colspan="11" class="text-center text-muted">Memuat database riwayat...</td></tr>
+            <tr><td colspan="11" class="text-center text-muted">Memuat database riwayat evaluasi...</td></tr>
           </tbody>
         </table>
       </div>
@@ -134,18 +135,21 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <script>
-    // MASUKKAN URL GOOGLE APPS SCRIPT WEB APP BERAKHIRAN /exec DI SINI:
+    // ==========================================
+    // CONFIG: PASTE URL WEB APP APPS SCRIPT ANDA DI SINI
+    // ==========================================
     const API_URL = "https://script.google.com/macros/s/AKfycbx5YcaykFdUfV9oRn814SLQNbONvPbZ6B6JFDEQ9EPbptzK0z4b9Sg9nRxWlbnynAdk/exec"; 
-    
+
     let chartObj = null;
 
     document.addEventListener("DOMContentLoaded", function() {
-      if(API_URL === "ISI_DENGAN_URL_WEB_APP_ANDA" || API_URL === "") {
-        alert("PERINGATAN: Konfigurasi API_URL belum diatur di dalam file index.html Anda!");
+      if(API_URL.includes("URL_APLIKASI_WEB_GAS_ANDA")) {
+        alert("Peringatan: Isi variabel API_URL di dalam script terlebih dahulu dengan link Web App Google Apps Script Anda!");
         return;
       }
       loadDropdownPegawai();
       refreshDashboard();
+      
       document.getElementById('uploadForm').addEventListener('submit', prosesUploadExcel);
     });
 
@@ -158,40 +162,39 @@
       document.getElementById('loadingOverlay').style.display = 'none';
     }
 
+    // Mengambil daftar pegawai via API POST Fetch
     function loadDropdownPegawai() {
       fetch(API_URL, {
         method: "POST",
+        mode: "cors",
         body: JSON.stringify({ action: "getDaftarPegawai" })
       })
       .then(res => res.json())
-      .then(res => {
-        if(res.status === "success") {
-          const select = document.getElementById('selectPegawai');
-          res.data.forEach(nama => {
-            let opt = document.createElement('option');
-            opt.value = nama;
-            opt.innerText = nama;
-            select.appendChild(opt);
-          });
-        }
+      .then(list => {
+        const select = document.getElementById('selectPegawai');
+        list.forEach(nama => {
+          let opt = document.createElement('option');
+          opt.value = nama;
+          opt.innerText = nama;
+          select.appendChild(opt);
+        });
       })
-      .catch(err => console.error("Error load dropdown:", err));
+      .catch(err => console.error("Gagal memuat daftar pegawai:", err));
     }
 
+    // Refresh data statistik dan dashboard tabel
     function refreshDashboard() {
       fetch(API_URL, {
         method: "POST",
+        mode: "cors",
         body: JSON.stringify({ action: "getDashboardData" })
       })
       .then(res => res.json())
-      .then(response => {
-        if(response.status !== "success") return;
-        const res = response.data;
-        
+      .then(res => {
         document.getElementById('valTotalSesi').innerText = res.totalEvaluasi;
         document.getElementById('valTotalPegawai').innerText = res.jumlahPegawai;
         
-        // Render Ranking Table
+        // Render Papan Peringkat
         const rankBody = document.getElementById('rankingTableBody');
         rankBody.innerHTML = "";
         if(res.ranking.length === 0) {
@@ -208,11 +211,11 @@
           });
         }
 
-        // Render Detail Table
+        // Render Tabel Detail Penilaian
         const detailBody = document.getElementById('detailTableBody');
         detailBody.innerHTML = "";
         if(res.detail.length === 0) {
-          detailBody.innerHTML = `<tr><td colspan="11" class="text-center text-muted">Database kosong.</td></tr>`;
+          detailBody.innerHTML = `<tr><td colspan="11" class="text-center text-muted">Database kosong. Silakan unggah file excel log kerja.</td></tr>`;
         } else {
           res.detail.forEach(r => {
             detailBody.innerHTML += `
@@ -235,11 +238,13 @@
           });
         }
 
+        // Render Chart
         renderChart(res.ranking);
       })
-      .catch(err => console.error("Error refresh dashboard:", err));
+      .catch(err => console.error("Gagal memuat dashboard data:", err));
     }
 
+    // Membaca file Excel secara lokal di client, lalu kirim struktur JSON via Fetch POST
     function prosesUploadExcel(e) {
       e.preventDefault();
       const namaPegawai = document.getElementById('selectPegawai').value;
@@ -247,7 +252,7 @@
       
       if (!namaPegawai || fileInput.files.length === 0) return;
       
-      showLoading("Membaca file Excel log kerja...");
+      showLoading("Membaca dan memetakan struktur file Excel...");
       const file = fileInput.files[0];
       const reader = new FileReader();
       
@@ -261,14 +266,15 @@
         
         if(rowsJson.length === 0) {
           hideLoading();
-          alert("File excel kosong!");
+          alert("File excel kosong atau format tidak dikenali!");
           return;
         }
 
-        showLoading("Mengirim log ke cloud dan memproses penilaian ...");
+        showLoading("Mengirim log aktivitas ke Gemini AI untuk dianalisis...");
         
         fetch(API_URL, {
           method: "POST",
+          mode: "cors",
           body: JSON.stringify({
             action: "simpanDanNilaiData",
             namaPegawai: namaPegawai,
@@ -284,8 +290,7 @@
         })
         .catch(err => {
           hideLoading();
-          alert("Terjadi kegagalan komunikasi cloud server. Pastikan Web App diset ke 'Anyone'.");
-          console.error(err);
+          alert("Terjadi Kesalahan Koneksi / CORS: " + err.message);
         });
       };
       
@@ -297,7 +302,9 @@
       const labels = rankingData.map(item => item.nama);
       const dataSkor = rankingData.map(item => item.nilaiAkhir);
       
-      if (chartObj) chartObj.destroy();
+      if (chartObj) {
+        chartObj.destroy();
+      }
       
       chartObj = new Chart(ctx, {
         type: 'bar',
@@ -315,7 +322,9 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: { y: { beginAtZero: true, max: 100 } }
+          scales: {
+            y: { beginAtZero: true, max: 100 }
+          }
         }
       });
     }
